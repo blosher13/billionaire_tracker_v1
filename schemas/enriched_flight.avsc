@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "EnrichedFlight",
+  "namespace": "billiontracker.avro",
+  "doc": "Position joined with the latest weather and owner for the same aircraft. Produced by the Kafka Streams app to flight.enriched. Deliberately flat (no nested records) so the JDBC Sink can map it straight to table columns. Weather fields are nullable because the join is a left join.",
+  "fields": [
+    {"name": "hex", "type": "string"},
+    {"name": "owner", "type": ["null", "string"], "default": null, "doc": "From tracked.aircraft"},
+    {"name": "registration", "type": ["null", "string"], "default": null, "doc": "From tracked.aircraft"},
+    {"name": "flight", "type": ["null", "string"], "default": null},
+    {"name": "lat", "type": "double"},
+    {"name": "lon", "type": "double"},
+    {"name": "altitude_ft", "type": ["null", "int"], "default": null},
+    {"name": "ground_speed_kt", "type": ["null", "double"], "default": null},
+    {"name": "track_deg", "type": ["null", "double"], "default": null},
+    {"name": "on_ground", "type": "boolean", "default": false},
+    {"name": "ts", "type": {"type": "long", "logicalType": "timestamp-millis"}},
+
+    {"name": "temp_c", "type": ["null", "double"], "default": null},
+    {"name": "feels_like_c", "type": ["null", "double"], "default": null},
+    {"name": "humidity_pct", "type": ["null", "int"], "default": null},
+    {"name": "weather_description", "type": ["null", "string"], "default": null},
+    {"name": "wind_speed_ms", "type": ["null", "double"], "default": null},
+    {"name": "wind_deg", "type": ["null", "int"], "default": null},
+    {"name": "weather_ts", "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}], "default": null}
+  ]
+}

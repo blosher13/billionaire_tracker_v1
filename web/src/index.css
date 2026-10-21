@@ -1,0 +1,93 @@
+/*
+ * BillionTracker tokens. Colours come from FAA VFR sectional charts: chart paper, navigation
+ * ink, airway magenta (posts, selection), Class B blue, and the buff of paper flight strips.
+ * One typeface, Archivo, using its width axis: wide for the wordmark, condensed for strip data.
+ */
+:root {
+  --paper: #e8edef;
+  --surface: #f6f8f9;
+  --ink: #15233a;
+  --ink-soft: #4a5a70;
+  --rule: #c9d3da;
+  --magenta: #a3165f;
+  --magenta-soft: #f6e3ed;
+  --blue: #2d5c96;
+  --buff: #f2e4bc;
+  --buff-edge: #dcc78f;
+  --live: #2f7d4f;
+  --warn: #8a5a00;
+  --warn-soft: #f7ecd2;
+  --danger: #b42318;
+
+  --font: 'Archivo', system-ui, sans-serif;
+  --step--1: 0.8125rem; /* 13px: secondary text */
+  --step-0: 0.9375rem; /* 15px: body */
+  --step-1: 1.1875rem; /* 19px */
+  --step-2: 1.5rem; /* 24px: person name */
+  --step-3: 2rem; /* 32px: temperature */
+
+  color-scheme: light;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Night cockpit: deep navy, dimmed buff strips. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0f1a2b;
+    --surface: #15233a;
+    --ink: #e4e9ef;
+    --ink-soft: #9fb0c4;
+    --rule: #2a3c58;
+    --magenta: #e05a9c;
+    --magenta-soft: #3a1830;
+    --blue: #7fa9df;
+    --buff: #3b3426;
+    --buff-edge: #5a4e33;
+    --live: #5cc98a;
+    --warn: #e8b54a;
+    --warn-soft: #3a2f16;
+    --danger: #ff8a7a;
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--blue);
+}
+
+:focus-visible {
+  outline: 2px solid var(--magenta);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

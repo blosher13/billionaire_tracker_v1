@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "TrackedAircraft",
+  "namespace": "billiontracker.avro",
+  "doc": "Which aircraft the producer should poll, and who they belong to. Topic: tracked.aircraft (compacted), key: hex. Seeded from config/billionaires.csv. A null value (tombstone) means stop tracking.",
+  "fields": [
+    {"name": "hex", "type": "string"},
+    {"name": "owner", "type": ["null", "string"], "default": null},
+    {"name": "icon", "type": ["null", "string"], "default": null, "doc": "Image path relative to the project root"},
+    {"name": "icon_credit", "type": ["null", "string"], "default": null, "doc": "Attribution shown with the photo, e.g. 'Photo: Jane Doe, CC BY-SA 4.0'"},
+    {"name": "icon_source_url", "type": ["null", "string"], "default": null, "doc": "Where the photo comes from (e.g. its Wikimedia Commons page), linked from the credit"},
+    {"name": "registration", "type": ["null", "string"], "default": null},
+    {"name": "aircraft_type", "type": ["null", "string"], "default": null},
+    {"name": "x_username", "type": ["null", "string"], "default": null, "doc": "Owner's X account; their posts are matched with this aircraft's position"},
+    {"name": "added_at", "type": {"type": "long", "logicalType": "timestamp-millis"}}
+  ]
+}

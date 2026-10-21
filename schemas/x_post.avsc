@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "XPost",
+  "namespace": "billiontracker.avro",
+  "doc": "A post on X by an aircraft's owner. Topic: x.posts, key: aircraft hex (so it can be joined with that aircraft's flights). Published once per aircraft linked to the account.",
+  "fields": [
+    {"name": "post_id", "type": "string"},
+    {"name": "hex", "type": "string", "doc": "Aircraft this post is being matched against"},
+    {"name": "username", "type": "string"},
+    {"name": "text", "type": "string", "doc": "Full text, including long-form (note) posts"},
+    {"name": "post_type", "type": "string", "doc": "post | reply | quote"},
+    {"name": "url", "type": "string"},
+    {"name": "like_count", "type": ["null", "int"], "default": null},
+    {"name": "reply_count", "type": ["null", "int"], "default": null},
+    {"name": "repost_count", "type": ["null", "int"], "default": null},
+    {"name": "view_count", "type": ["null", "long"], "default": null},
+    {"name": "created_at", "type": {"type": "long", "logicalType": "timestamp-millis"}}
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+  "tasks.max": "1",
+  "topics": "x.posts.located",
+
+  "connection.url": "jdbc:postgresql://localhost:5432/billiontracker",
+  "connection.user": "postgres",
+  "connection.password": "${file:__PROJECT_ROOT__/.env:post_gres_password}",
+
+  "table.name.format": "x_posts",
+  "auto.create": "true",
+  "auto.evolve": "true",
+
+  "insert.mode": "upsert",
+  "pk.mode": "record_value",
+  "pk.fields": "post_id,hex",
+
+  "errors.tolerance": "none",
+  "errors.log.enable": "true"
+}

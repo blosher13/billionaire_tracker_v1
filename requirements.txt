@@ -1,0 +1,9 @@
+# Kafka client + Avro serializers + Schema Registry client (pulls in fastavro, httpx, etc.)
+confluent-kafka[avro,schemaregistry]==2.16.0
+requests>=2.32
+python-dotenv>=1.0
+
+# API (Step 7)
+fastapi>=0.115
+uvicorn[standard]>=0.32
+psycopg[binary,pool]>=3.2

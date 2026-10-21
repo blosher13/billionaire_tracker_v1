@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "Weather",
+  "namespace": "billiontracker.avro",
+  "doc": "Current weather at an aircraft's location from OpenWeather. Topic: weather.observations, key: hex.",
+  "fields": [
+    {"name": "hex", "type": "string"},
+    {"name": "lat", "type": "double"},
+    {"name": "lon", "type": "double"},
+    {"name": "temp_c", "type": "double"},
+    {"name": "feels_like_c", "type": ["null", "double"], "default": null},
+    {"name": "humidity_pct", "type": ["null", "int"], "default": null},
+    {"name": "description", "type": "string", "doc": "e.g. 'broken clouds'"},
+    {"name": "wind_speed_ms", "type": ["null", "double"], "default": null},
+    {"name": "wind_deg", "type": ["null", "int"], "default": null},
+    {"name": "ts", "type": {"type": "long", "logicalType": "timestamp-millis"}}
+  ]
+}

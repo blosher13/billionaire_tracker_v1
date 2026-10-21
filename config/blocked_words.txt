@@ -1,0 +1,82 @@
+# Words not allowed in discussion posts (see api/moderation.py). Restart the API after editing.
+#   word    the word on its own, plus endings like -s, -ed, -ing (so "ass" doesn't block "class")
+#   *word   also anywhere inside a word (so "*fuck" blocks "motherfucker")
+#   =word   only that exact word (so "=spic" doesn't block "spicy")
+# Phrases with spaces need the * form.
+
+# Swear words
+*fuck
+*shit
+*bitch
+*bastard
+*asshole
+*arsehole
+*dickhead
+*jackass
+*dumbass
+*wank
+*bollock
+*cocksuck
+*motherf
+ass
+arse
+cunt
+twat
+=prick
+piss
+crap
+damn
+goddamn
+bugger
+douche
+cock
+dick
+wtf
+stfu
+
+# Sexual language
+*porn
+*orgasm
+*blowjob
+*handjob
+*dildo
+*masturbat
+*hentai
+*blow job
+*hand job
+*jerk off
+*jack off
+sex
+sexy
+sexting
+horny
+nude
+nudes
+boob
+boobies
+tit
+titty
+titties
+penis
+vagina
+pussy
+anal
+anus
+cum
+jizz
+milf
+slut
+whore
+xxx
+nsfw
+onlyfans
+
+# Slurs
+*nigger
+*nigga
+*faggot
+fag
+retard
+=spic
+kike
+tranny

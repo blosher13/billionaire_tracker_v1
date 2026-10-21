@@ -1,0 +1,62 @@
+// Kafka Streams enricher: joins positions with the latest weather, map and owner per aircraft.
+//   ./gradlew run
+
+import org.apache.avro.Schema
+import org.apache.avro.compiler.specific.SpecificCompiler
+import org.apache.avro.generic.GenericData
+
+buildscript {
+    repositories { mavenCentral() }
+    // Avro's own code generator, used by the generateAvro task below.
+    dependencies { classpath 'org.apache.avro:avro-compiler:1.12.2' }
+}
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://packages.confluent.io/maven/' } // Confluent's Avro serde lives here
+}
+
+dependencies {
+    // Confluent's "-ccs" build of Kafka, matching Confluent Platform 8.3.2. The Avro serde depends on
+    // kafka-clients 8.3.2-ccs, so kafka-streams must be the same build or the classpath mixes versions.
+    implementation 'org.apache.kafka:kafka-streams:8.3.2-ccs'
+    implementation 'io.confluent:kafka-streams-avro-serde:8.3.2'
+    implementation 'org.apache.avro:avro:1.12.2' // same version as the code generator
+    runtimeOnly 'org.slf4j:slf4j-simple:2.0.17'
+}
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+}
+
+application {
+    mainClass = 'billiontracker.EnricherApp'
+    // Avro 1.12 only instantiates generated classes from packages you explicitly trust.
+    applicationDefaultJvmArgs = ['-Dorg.apache.avro.SERIALIZABLE_PACKAGES=billiontracker.avro']
+}
+
+// Generate Java classes (Position, Weather, EnrichedFlight, ...) from the shared ../schemas/*.avsc,
+// so Python and Java always agree on the record format.
+def schemaDir = file("$projectDir/../schemas")
+def avroOutDir = layout.buildDirectory.dir('generated/avro')
+
+def generateAvro = tasks.register('generateAvro') {
+    inputs.dir(schemaDir)
+    outputs.dir(avroOutDir)
+    doLast {
+        def out = avroOutDir.get().asFile
+        out.deleteDir()
+        schemaDir.listFiles().findAll { it.name.endsWith('.avsc') }.sort().each { avsc ->
+            def compiler = new SpecificCompiler(new Schema.Parser().parse(avsc))
+            compiler.setStringType(GenericData.StringType.String) // java.lang.String, not CharSequence
+            compiler.compileToDestination(avsc, out)
+        }
+    }
+}
+
+sourceSets.main.java.srcDir(generateAvro)

@@ -1,0 +1,28 @@
+{
+  "type": "record",
+  "name": "XPostLocated",
+  "namespace": "billiontracker.avro",
+  "doc": "An X post joined with the aircraft's latest known position. Produced by the Kafka Streams app to x.posts.located. The position is the AIRCRAFT's, not necessarily the poster's. Flat so the JDBC Sink can map it to columns.",
+  "fields": [
+    {"name": "post_id", "type": "string"},
+    {"name": "hex", "type": "string"},
+    {"name": "username", "type": "string"},
+    {"name": "owner", "type": ["null", "string"], "default": null},
+    {"name": "text", "type": "string"},
+    {"name": "post_type", "type": "string"},
+    {"name": "url", "type": "string"},
+    {"name": "like_count", "type": ["null", "int"], "default": null},
+    {"name": "reply_count", "type": ["null", "int"], "default": null},
+    {"name": "repost_count", "type": ["null", "int"], "default": null},
+    {"name": "view_count", "type": ["null", "long"], "default": null},
+    {"name": "created_at", "type": {"type": "long", "logicalType": "timestamp-millis"}},
+
+    {"name": "location_status", "type": "string", "doc": "matched (position observed within 15 min before the post) | last_known (older position, e.g. parked; poster assumed still there) | unknown (no earlier position)"},
+    {"name": "plane_lat", "type": ["null", "double"], "default": null},
+    {"name": "plane_lon", "type": ["null", "double"], "default": null},
+    {"name": "plane_altitude_ft", "type": ["null", "int"], "default": null},
+    {"name": "plane_on_ground", "type": ["null", "boolean"], "default": null},
+    {"name": "plane_ts", "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}], "default": null},
+    {"name": "position_offset_s", "type": ["null", "long"], "default": null, "doc": "post time minus position time, in seconds (how old the position was when posting)"}
+  ]
+}

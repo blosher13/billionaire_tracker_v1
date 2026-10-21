@@ -1,0 +1,15 @@
+.env
+.virtual_env/
+.kafka-data/
+logs/
+__pycache__/
+node_modules/
+web/dist/
+streams/build/
+streams/.gradle/
+.streams-state/
+connect/plugins/
+.state/
+.claude/
+.DS_Store
+*.local

@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "Position",
+  "namespace": "billiontracker.avro",
+  "doc": "One aircraft position report from ADS-B Exchange. Topic: flight.positions, key: hex.",
+  "fields": [
+    {"name": "hex", "type": "string", "doc": "ICAO24 transponder address, lowercase"},
+    {"name": "flight", "type": ["null", "string"], "default": null, "doc": "Callsign, e.g. UAL123"},
+    {"name": "lat", "type": "double"},
+    {"name": "lon", "type": "double"},
+    {"name": "altitude_ft", "type": ["null", "int"], "default": null, "doc": "Barometric altitude; null when unknown"},
+    {"name": "ground_speed_kt", "type": ["null", "double"], "default": null},
+    {"name": "track_deg", "type": ["null", "double"], "default": null, "doc": "Heading over ground, 0-360"},
+    {"name": "on_ground", "type": "boolean", "default": false},
+    {"name": "ts", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "When the position was observed"}
+  ]
+}
