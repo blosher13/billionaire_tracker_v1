@@ -5,11 +5,8 @@ import { postTime } from '../format'
 import type { Board as BoardName, DiscussionPost, ReactionKind } from '../types'
 
 const REACTIONS: { kind: ReactionKind; emoji: string; label: string }[] = [
-  { kind: 'like', emoji: '👍', label: 'Like' },
-  { kind: 'love', emoji: '❤️', label: 'Love' },
-  { kind: 'haha', emoji: '😂', label: 'Haha' },
-  { kind: 'wow', emoji: '😮', label: 'Wow' },
-  { kind: 'sad', emoji: '😢', label: 'Sad' },
+  { kind: 'like', emoji: '👍', label: 'Thumbs up' },
+  { kind: 'dislike', emoji: '👎', label: 'Thumbs down' },
 ]
 const MAX_BODY = 1000
 const MAX_AUTHOR = 40
@@ -21,9 +18,7 @@ type Check = { state: 'idle' | 'working' } | { state: 'done'; challenge: string;
 export function Discussion() {
   return (
     <section id="discussion" className="discussion" aria-label="Discussion">
-      <p className="discussion-rules quiet">
-        Text only: no links, photos, swear words or sexual language.
-      </p>
+      <p className="discussion-rules quiet">Text only: no links, photos, swear words or sexual language.</p>
       <div className="boards">
         <Board board="general" title="Discussion" />
         <Board board="ideas" title="What features would you like to see added to this app?" />
@@ -45,7 +40,8 @@ function Board({ board, title }: { board: BoardName; title: string }) {
       setLoading(true)
       getDiscussion(board, offset)
         .then((page) => {
-          setPosts((prev) => (offset ? [...prev, ...page.posts] : page.posts))
+          // General: each page is older than the last, so it goes on top. Ideas: next page below.
+          setPosts((prev) => (!offset ? page.posts : ideas ? [...prev, ...page.posts] : [...page.posts, ...prev]))
           setHasMore(page.has_more)
           setTotal(page.total)
           setError(null)
@@ -53,7 +49,7 @@ function Board({ board, title }: { board: BoardName; title: string }) {
         .catch((err: Error) => setError(err.message))
         .finally(() => setLoading(false))
     },
-    [board],
+    [board, ideas],
   )
   useEffect(() => load(0), [load])
 
@@ -68,8 +64,8 @@ function Board({ board, title }: { board: BoardName; title: string }) {
   const added = (post: DiscussionPost) => {
     setTotal((n) => n + 1)
     // New ideas start at 0 votes, so show them at the top until the next reload re-sorts.
-    if (ideas) setPosts((prev) => [post, ...prev])
-    else if (!hasMore) setPosts((prev) => [...prev, post])
+    // The general board always shows the latest posts, so a new one goes at the bottom.
+    setPosts((prev) => (ideas ? [post, ...prev] : [...prev, post]))
   }
 
   const composer = (
@@ -89,14 +85,22 @@ function Board({ board, title }: { board: BoardName; title: string }) {
         <p className="quiet">
           {ideas
             ? `${total === 1 ? '1 idea' : `${total} ideas`}, most upvoted first. Vote on the ones you want.`
-            : `${total === 1 ? '1 post' : `${total} posts`}, oldest first.`}
+            : `${total === 1 ? '1 post' : `${total} posts`}, newest at the bottom.`}
         </p>
       </header>
 
       {ideas && composer}
       {error && <p className="error">{error}</p>}
       {!loading && posts.length === 0 && !error && (
-        <p className="hint">{ideas ? 'No ideas yet. Suggest the first one.' : 'No posts yet. Start the conversation below.'}</p>
+        <p className="hint">
+          {ideas ? 'No ideas yet. Suggest the first one.' : 'No posts yet. Start the conversation below.'}
+        </p>
+      )}
+
+      {!ideas && hasMore && !loading && (
+        <button className="wide-button" onClick={() => load(posts.length)}>
+          Show older posts
+        </button>
       )}
 
       <ol className="talk">
@@ -106,9 +110,9 @@ function Board({ board, title }: { board: BoardName; title: string }) {
       </ol>
 
       {loading && <p className="quiet">Loading…</p>}
-      {hasMore && !loading && (
+      {ideas && hasMore && !loading && (
         <button className="wide-button" onClick={() => load(posts.length)}>
-          {ideas ? 'Show more ideas' : 'Show newer posts'}
+          Show more ideas
         </button>
       )}
 

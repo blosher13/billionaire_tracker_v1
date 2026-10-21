@@ -1,6 +1,7 @@
 """Discussion boards: visitors write text posts, reply to them, and react.
 
-Two boards: "general" (oldest first, with reactions) and the permanent "ideas" board for
+Two boards: "general" (read oldest to newest like a chat, opening on the latest posts; 👍/👎
+reactions) and the permanent "ideas" board for
 feature requests (highest-voted first; visitors up- or downvote each idea once). Replies are
 one level deep and belong to their parent's board.
 
@@ -12,8 +13,8 @@ Posting needs a bot check, all done on this server with no third-party service:
   * a minimum time between getting the challenge and posting, and per-visitor post limits
 
 Posts must pass api/moderation.py: plain text only, no links or images, no swear words or
-sexual language. Reactions (one of each kind per visitor, toggled) use an anonymous random
-cookie, so no account is needed.
+sexual language. Reactions are thumbs up or thumbs down (one per visitor per post, toggled;
+picking one replaces the other) and use an anonymous random cookie, so no account is needed.
 
 Writes go straight to Postgres through the API's database user, which may only insert into the
 discussion tables (scripts/setup-web-db-user.sh); everything else stays read-only.
@@ -37,7 +38,7 @@ from api.security import client_ip, require_admin
 
 router = APIRouter(prefix="/api/discussion")
 
-REACTIONS = ("like", "love", "haha", "wow", "sad")
+REACTIONS = ("like", "dislike")  # 👍 and 👎; a visitor can give one of the two
 POW_BITS = int(os.getenv("DISCUSSION_POW_BITS", "18"))  # ~260k hashes on average
 # Challenges are signed with this key. Without DISCUSSION_SECRET a new key is made at startup,
 # which only means challenges handed out before a restart stop working.
@@ -152,8 +153,9 @@ POST_COLUMNS = """
     COALESCE((SELECT value FROM discussion_votes v WHERE v.post_id = p.id AND v.visitor = %(visitor)s), 0)::int
         AS my_vote
 """
-# General discussion: oldest first. Feature ideas: highest score first, then oldest.
-ORDER = {"general": "p.created_at, p.id", "ideas": "score DESC, p.created_at, p.id"}
+# Pages are taken in this order. General discussion: newest first, so the first page is the
+# latest posts (each page is returned oldest to newest). Feature ideas: highest score, then oldest.
+ORDER = {"general": "p.created_at DESC, p.id DESC", "ideas": "score DESC, p.created_at, p.id"}
 
 
 def _not_set_up() -> HTTPException:
@@ -172,7 +174,10 @@ def _one(conn, post_id: int, visitor: str) -> dict:
 @router.get("")
 def list_posts(request: Request, response: Response, board: str = Query("general"),
                offset: int = Query(0, ge=0), limit: int = Query(PAGE_SIZE, ge=1, le=100)) -> dict:
-    """A page of a board's posts, each with all its replies (oldest first)."""
+    """A page of a board's posts, each with all its replies (oldest first).
+
+    General board: offset 0 is the latest PAGE_SIZE posts, offset 50 the 50 before those, and
+    so on; each page is listed oldest to newest. Ideas board: highest score first."""
     if board not in BOARDS:
         raise HTTPException(422, f"board must be one of: {', '.join(BOARDS)}")
     params = {"visitor": _visitor(request, response), "board": board, "offset": offset, "limit": limit + 1}
@@ -182,6 +187,8 @@ def list_posts(request: Request, response: Response, board: str = Query("general
                 f"SELECT {POST_COLUMNS} FROM discussion_posts p "
                 "WHERE p.board = %(board)s AND p.parent_id IS NULL AND NOT p.hidden "
                 f"ORDER BY {ORDER[board]} OFFSET %(offset)s LIMIT %(limit)s", params).fetchall()[:limit]
+            if board == "general":
+                rows.reverse()  # read top to bottom, oldest to newest
             replies = conn.execute(
                 f"SELECT {POST_COLUMNS} FROM discussion_posts p "
                 "WHERE p.parent_id = ANY(%(ids)s) AND NOT p.hidden ORDER BY p.created_at, p.id",
@@ -285,7 +292,7 @@ class Reaction(BaseModel):
 
 @router.post("/{post_id}/reactions")
 def toggle_reaction(post_id: int, reaction: Reaction, request: Request, response: Response) -> dict:
-    """Add the visitor's reaction, or remove it if they already gave that one."""
+    """Thumbs up or down: add it (replacing the other one), or remove it if the visitor already gave it."""
     if reaction.kind not in REACTIONS:
         raise HTTPException(400, f"Reaction must be one of: {', '.join(REACTIONS)}")
     visitor = _visitor(request, response)
@@ -297,6 +304,8 @@ def toggle_reaction(post_id: int, reaction: Reaction, request: Request, response
         removed = conn.execute("DELETE FROM discussion_reactions WHERE post_id = %(id)s AND visitor = %(visitor)s "
                                "AND kind = %(kind)s", params).rowcount
         if not removed:
+            conn.execute("DELETE FROM discussion_reactions WHERE post_id = %(id)s AND visitor = %(visitor)s",
+                         params)  # 👍 and 👎 are either/or
             conn.execute("INSERT INTO discussion_reactions (post_id, visitor, kind) VALUES (%(id)s, %(visitor)s, "
                          "%(kind)s) ON CONFLICT DO NOTHING", params)
         row = conn.execute(f"SELECT {POST_COLUMNS} FROM discussion_posts p WHERE p.id = %(id)s", params).fetchone()

@@ -98,7 +98,7 @@ export interface HistoryDay {
   end_of_day: EndOfDayPosition[]
 }
 
-export type ReactionKind = 'like' | 'love' | 'haha' | 'wow' | 'sad'
+export type ReactionKind = 'like' | 'dislike'
 
 export type Board = 'general' | 'ideas'
 

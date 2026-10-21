@@ -49,7 +49,7 @@ CREATE INDEX IF NOT EXISTS discussion_posts_created_idx ON discussion_posts (cre
 CREATE TABLE IF NOT EXISTS discussion_reactions (
   post_id    bigint      NOT NULL REFERENCES discussion_posts (id) ON DELETE CASCADE,
   visitor    text        NOT NULL,
-  kind       text        NOT NULL CHECK (kind IN ('like', 'love', 'haha', 'wow', 'sad')),
+  kind       text        NOT NULL CHECK (kind IN ('like', 'dislike')),
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (post_id, visitor, kind)
 );
@@ -70,6 +70,10 @@ CREATE TABLE IF NOT EXISTS discussion_votes (
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (post_id, visitor)
 );
+-- Reactions are thumbs up or down only (earlier versions also had love/haha/wow/sad).
+DELETE FROM discussion_reactions WHERE kind NOT IN ('like', 'dislike');
+ALTER TABLE discussion_reactions DROP CONSTRAINT IF EXISTS discussion_reactions_kind_check;
+ALTER TABLE discussion_reactions ADD CONSTRAINT discussion_reactions_kind_check CHECK (kind IN ('like', 'dislike'));
 GRANT SELECT, INSERT ON discussion_posts TO billiontracker_web;
 GRANT SELECT, INSERT, DELETE ON discussion_votes TO billiontracker_web;
 GRANT UPDATE (value) ON discussion_votes TO billiontracker_web;

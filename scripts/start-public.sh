@@ -3,7 +3,7 @@
 #
 #   ./scripts/start-public.sh            # quick tunnel: random https://<words>.trycloudflare.com URL
 #   CLOUDFLARE_TUNNEL=billiontracker ./scripts/start-public.sh
-#                                        # named tunnel on your own domain (see README "Go public")
+#                                        # named tunnel on your own domain (needs a Cloudflare account)
 #
 # Only the API on localhost:8000 is exposed. Kafka, Schema Registry, Connect and Postgres stay
 # private. No router ports are opened: cloudflared makes an outbound connection to Cloudflare.
