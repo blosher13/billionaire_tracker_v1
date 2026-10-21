@@ -90,6 +90,7 @@ Days follow the visitor's own time zone.
 ./scripts/start-schema-registry.sh
 ./scripts/start-connect.sh
 ./scripts/register-connector.sh          # registers connect/*.json; safe to re-run
+./scripts/setup-web-db-user.sh           # API's Postgres user + discussion tables; safe to re-run
 
 # 2. Apps: one terminal each
 source .virtual_env/bin/activate
@@ -135,35 +136,3 @@ On both boards anyone can reply to a post or an idea. Replies are one level deep
 | `X_BLOCK_HOURS` | 24 | Length of each block that gets one top post per person (must divide 24); 24 = one pick at midnight |
 | `DISCUSSION_POW_BITS` | 18 | Bot-check difficulty; each extra bit doubles the work |
 | `DISCUSSION_SECRET` | random at startup | Key that signs bot-check challenges; set it to keep challenges valid across restarts |
-
-## Go public (read-only, from this Mac)
-The public site is **read-only**. Visitors can browse, but adding or removing aircraft returns 403 and the controls are hidden. You manage aircraft by editing `config/billionaires.csv` and restarting the producer. Only the API (`localhost:8000`) is exposed, through a Cloudflare Tunnel; Kafka, Schema Registry, Connect and Postgres stay private, and no router ports are opened.
-
-**One-time setup**
-```bash
-brew install cloudflared
-./scripts/setup-web-db-user.sh     # read-only Postgres user for the API (password saved to .env)
-```
-In Google Cloud Console, restrict the Maps key under **Application restrictions → Websites** to your public URL. Also set **daily quotas** for the Maps JavaScript API, because each visitor's map load is billed.
-
-**Start**
-Start the infrastructure, the producer and the Streams app (see **Run**), then:
-```bash
-./scripts/start-public.sh          # prints https://<random>.trycloudflare.com
-```
-The quick-tunnel URL changes every time you restart. For a permanent address on your own domain, use a Cloudflare account and a named tunnel:
-```bash
-cloudflared tunnel login
-cloudflared tunnel create billiontracker
-cloudflared tunnel route dns billiontracker tracker.example.com
-# ~/.cloudflared/config.yml:  tunnel: billiontracker / ingress: hostname tracker.example.com → http://localhost:8000, then service: http_status:404
-CLOUDFLARE_TUNNEL=billiontracker ./scripts/start-public.sh
-```
-
-**What protects the site** (`api/security.py`)
-- `READ_ONLY=true` is the default. Changes are still possible from your own terminal if you set `ADMIN_TOKEN`:
-  `curl -X POST localhost:8000/api/aircraft -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' -d '{"hex":"…"}'`
-- Rate limits are per visitor IP (Cloudflare's `CF-Connecting-IP`): 120 requests a minute, at most 4 live connections per IP and 200 in total.
-- The API docs are hidden, and security headers are set.
-- The API connects to Postgres as `billiontracker_web`, which can only SELECT, uses read-only transactions, has a 3-second query timeout and a 20-connection cap.
-- The site is only up while your Mac is awake and online. The script runs `caffeinate`, but closing the lid still puts the Mac to sleep.
